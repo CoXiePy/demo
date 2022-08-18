@@ -3,10 +3,12 @@ import Router from 'vue-router'
 import Home from "../components/Home";
 // import ElementUI from 'element-ui';
 // import 'element-ui/lib/theme-chalk/index.css';
-// import Login from "../components/Login";
+import Login from "../components/Login";
 import BlogArticles from "../components/blog/BlogArticles";
 import Blog from "../components/Blog";
 import BlogDetail from "../components/BlogDetail";
+import Tech from "../components/Tech";
+// 技术部分
 
 
 
@@ -25,13 +27,6 @@ export default new Router({
       name: 'Home',
       component: Home
     },
-
-
-    // {
-    //   path: '/register',
-    //   name: 'RegisterNew',
-    //   component: RegisterNew
-    // },
     {
       path: '/blog',
       component: Blog,
@@ -45,5 +40,17 @@ export default new Router({
       name: BlogDetail,
       component: BlogDetail,
     },
+    {
+      path: "/login",
+      name: Login,
+      component: Login,
+    },
+    {
+      path: "/tech",
+      name: Tech,
+      component: Tech,
+    },
+
+
   ]
 })

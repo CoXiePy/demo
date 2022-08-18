@@ -14,8 +14,8 @@
             <el-row>
                 <el-col :span="3"><router-link to="/home">博客说明</router-link></el-col>
                 <el-col :span="3"><router-link to="/blog">技术文章</router-link></el-col>
-                <el-col :span="3"><router-link to="/edit">文章编辑</router-link></el-col>
-                <el-col :span="3"><router-link to="/">App项目</router-link></el-col>
+                <el-col :span="3"><router-link to="/edit">DRF项目</router-link></el-col>
+                <el-col :span="3"><router-link to="/app">App项目</router-link></el-col>
 
               </el-row>
 
@@ -36,11 +36,11 @@
             </div>
 <!--            进入页面判断是否登录,否则提示登录-->
             <div class="register" v-show="!token">
-              <router-link to="/login"><button class="signin">登录</button></router-link>
-              &nbsp;&nbsp;|&nbsp;&nbsp;
-              <a target="_blank" href="">
-                <router-link to="/register"><button class="signup">注册</button></router-link>
-              </a>
+              <router-link to="/login"><button class="signin">登录(仅管理员)</button></router-link>
+<!--              &nbsp;&nbsp;|&nbsp;&nbsp;-->
+<!--              <a target="_blank" href="">-->
+<!--                <router-link to="/register"><button class="signup">注册</button></router-link>-->
+<!--              </a>-->
             </div>
 <!--            <div class="shop-car" v-show="token">-->
 <!--              <router-link to="/cart">-->
@@ -49,20 +49,20 @@
 <!--                <span>报错 </span>-->
 <!--              </router-link>-->
 <!--            </div>-->
+<!--            <div class="nav-right-box" v-show="token">-->
+<!--                <div class="nav-right">-->
+<!--                  <router-link to="/myclass">-->
+<!--                    <div class="nav-study">人工客服</div>-->
+<!--                  </router-link>-->
+
+
+<!--                </div>-->
+
+<!--              </div>-->
             <div class="nav-right-box" v-show="token">
                 <div class="nav-right">
-                  <router-link to="/myclass">
-                    <div class="nav-study">人工客服</div>
-                  </router-link>
-
-
-                </div>
-
-              </div>
-            <div class="nav-right-box" v-show="token">
-                <div class="nav-right">
-                  <router-link to="/myclass">
-                    <div class="nav-study">我的教室</div>
+                  <router-link to="/tech">
+                    <div class="nav-study">集中技术</div>
                   </router-link>
                   <div class="nav-img" @mouseover="personInfoList" @mouseout="personInfoOut">
                     <img src="@/assets/coxie.png" alt="" style="border: 1px solid rgb(243, 243, 243);" >
@@ -125,6 +125,7 @@
           token:true,
           s_status:true,
           list_status:false,
+          nav_list :[],
         }
       },
       methods:{
@@ -148,9 +149,27 @@
         },
         personInfoOut(){
           this.list_status = false;
-        }
+        },
+        get_nav(){
+          this.$axios.get(`${this.$settings.host}/home/nav/`
+          ).then((res)=>{
+            if (localStorage.token){
+              this.nav_list = res.data;
+              this.token = true;
+              console.log(res.data)
+
+            }
+          }).catch((error)=>{
+            this.$message.error("登录失败");
+            this.token = false;
+          })
+        },
+      },
+      created() {
+        // get_nav();
       }
     }
+
 
 
 

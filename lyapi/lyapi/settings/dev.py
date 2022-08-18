@@ -13,6 +13,9 @@ import datetime
 import os
 import sys
 from pathlib import Path
+from django.apps import AppConfig
+
+# AppConfig.default = False
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,15 +50,28 @@ INSTALLED_APPS = [
     'users',
     'home',
     'blog',
-    'mdeditor',
+    'order',
+    'course',
     'rest_framework_jwt',
+    'coupon',
 
     'corsheaders',
     'xadmin',
     'crispy_forms',
     'reversion',
 
+    'mdeditor',  # markdown 编辑器
+    "ckeditor",  # 注册富文本编辑器 ckeditor
+    "ckeditor_uploader",  # 图片上传需注册
+
 ]
+
+#  设置媒体的存储路径
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+#  设置图片上传的路径
+CKEDITOR_UPLOAD_PATH = "upload"
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -98,6 +114,37 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
 
 )
+
+# 设置为redis为缓存
+CACHES = {
+    # 没有指定，默认保存这里，
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 提供给 xadmin/admin 的session 存储,
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 设置存储 数据库为 第1 个
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # todo 提供给短信验证码存储
+
+    # 提供给购物车存储
+    "cart": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}
 
 TEMPLATES = [
     {
@@ -154,70 +201,69 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # JWT相关配置
-# JWT_AUTH = {
-#     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
-#     'JWT_RESPONSE_PAYLOAD_HANDLER': 'lyapi.apps.users.utils.jwt_response_payload_handler',
-#     'JWT_ALLOW_REFRESH': True,
-# }
-
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=400),
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'lyapi.apps.users.utils.jwt_response_payload_handler',
+    'JWT_ALLOW_REFRESH': True,
+}
 # rest_framework 异常处理相关
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'lyapi.utils.exceptions.custom_exception_handler',
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-    #     'rest_framework.authentication.SessionAuthentication',
-    #     'rest_framework.authentication.BasicAuthentication',
-    # ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
     'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
 }
 
-
 # 日志配置
 LOGGING = {
-    'version': 1,  #使用的python内置的logging模块，那么python可能会对它进行升级，所以需要写一个版本号，目前就是1版本
-    'disable_existing_loggers': False, #是否去掉目前项目中其他地方中以及使用的日志功能，但是将来我们可能会引入第三方的模块，里面可能内置了日志功能，所以尽量不要关闭。
-    'formatters': { #日志记录格式
-        'verbose': { #levelname等级，asctime记录时间，module表示日志发生的文件名称，lineno行号，message错误信息
+    'version': 1,  # 使用的python内置的logging模块，那么python可能会对它进行升级，所以需要写一个版本号，目前就是1版本
+    'disable_existing_loggers': False,  # 是否去掉目前项目中其他地方中以及使用的日志功能，但是将来我们可能会引入第三方的模块，里面可能内置了日志功能，所以尽量不要关闭。
+    'formatters': {  # 日志记录格式
+        'verbose': {  # levelname等级，asctime记录时间，module表示日志发生的文件名称，lineno行号，message错误信息
             'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
         },
     },
-    'filters': { #过滤器：可以对日志进行输出时的过滤用的
-        'require_debug_true': { #在debug=True下产生的一些日志信息，要不要记录日志，需要的话就在handlers中加上这个过滤器，不需要就不加
+    'filters': {  # 过滤器：可以对日志进行输出时的过滤用的
+        'require_debug_true': {  # 在debug=True下产生的一些日志信息，要不要记录日志，需要的话就在handlers中加上这个过滤器，不需要就不加
             '()': 'django.utils.log.RequireDebugTrue',
         },
-        'require_debug_false': { #和上面相反
+        'require_debug_false': {  # 和上面相反
             '()': 'django.utils.log.RequireDebugFalse',
         },
     },
-    'handlers': { #日志处理方式，日志实例,网哪里输出
-        'console': { #在控制台输出时的实例
-            'level': 'DEBUG', #日志等级；debug是最低等级，那么只要比它高等级的信息都会被记录
-            'filters': ['require_debug_true'], #在debug=True下才会打印在控制台
-            'class': 'logging.StreamHandler', #使用的python的logging模块中的StreamHandler来进行输出
+    'handlers': {  # 日志处理方式，日志实例,网哪里输出
+        'console': {  # 在控制台输出时的实例
+            'level': 'DEBUG',  # 日志等级；debug是最低等级，那么只要比它高等级的信息都会被记录
+            'filters': ['require_debug_true'],  # 在debug=True下才会打印在控制台
+            'class': 'logging.StreamHandler',  # 使用的python的logging模块中的StreamHandler来进行输出
             'formatter': 'simple'
         },
         'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             # 日志位置,日志文件名,日志保存目录必须手动创建
-            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/coxiepy.log"), #注意，你的文件应该有读写权限。
+            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/coxiepy.log"),  # 注意，你的文件应该有读写权限。
             # 日志文件的最大值,这里我们设置300M
             'maxBytes': 300 * 1024 * 1024,  # B
             # 日志文件的数量,设置最大日志数量为10
             'backupCount': 10,
             # 日志格式:详细格式
             'formatter': 'verbose',
-          	'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
+            'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
         },
     },
     # 日志对象
     'loggers': {
-        'django': {  #和django结合起来使用，将django中之前的日志输出内容的时候，按照我们的日志配置进行输出，
-            'handlers': ['console', 'file'], #将来项目上线，把console去掉
-            'propagate': True, #冒泡：是否将日志信息记录冒泡给其他的日志处理系统，工作中都是True，不然django这个日志系统捕获到日志信息之后，其他模块中可能也有日志记录功能的模块，就获取不到这个日志信息了
+        'django': {  # 和django结合起来使用，将django中之前的日志输出内容的时候，按照我们的日志配置进行输出，
+            'handlers': ['console', 'file'],  # 将来项目上线，把console去掉
+            'propagate': True,
+            # 冒泡：是否将日志信息记录冒泡给其他的日志处理系统，工作中都是True，不然django这个日志系统捕获到日志信息之后，其他模块中可能也有日志记录功能的模块，就获取不到这个日志信息了
         },
     }
 }
@@ -237,7 +283,8 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
+# USE_TZ = True
 
 AUTH_USER_MODEL = 'users.User'
 

@@ -8,6 +8,7 @@ from .models import Article
 class CustomPagenation(PageNumberPagination):
     page_size = 10  # 每页最多显示记录
     page_query_param = 'page'  # ?page=2
+
     page_size_query_param = 'size'  # /list/?size=20
     max_page_size = 100  # 最大每页显示几条
 

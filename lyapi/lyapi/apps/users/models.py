@@ -9,6 +9,7 @@ from lyapi.utils.models import BaseModel
 class User(AbstractUser):
     wechat = models.CharField(max_length=20, null=True, default=None, verbose_name="微信号")
     mobile = models.CharField(max_length=11, null=True, default=None, verbose_name="手机号")
+    credit = models.IntegerField(default=0, verbose_name='积分', )
 
     class Meta:
         db_table = "b_user"

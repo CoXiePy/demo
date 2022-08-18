@@ -25,6 +25,11 @@ urlpatterns = [
     path('home/', include('home.urls')),
     path('users/', include('users.urls')),
     path('blog/', include('blog.urls')),
+    path('order/', include('order.urls')),
+    path('course/', include('course.urls')),
+    path('coupon/', include('coupon.urls')),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
+
 ]
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)

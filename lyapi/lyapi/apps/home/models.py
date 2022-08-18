@@ -14,7 +14,7 @@ class Nav(BaseModel):
     is_site = models.BooleanField(default=False, verbose_name="是否是站外地址")
 
     class Meta:
-        db_table = 'ly_nav'
+        db_table = 'b_nav'
         verbose_name = '导航菜单'
         verbose_name_plural = verbose_name
 
